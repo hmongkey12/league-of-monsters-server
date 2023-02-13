@@ -1,6 +1,7 @@
 const express = require("express");
 const socket = require("socket.io");
 const http = require("http");
+const List = require("collections/list");
 
 const app = express();
 const PORT = 3000 || process.env.PORT;
@@ -11,30 +12,40 @@ app.use(express.static("public"));
 const io = socket(server);
 
 function GameState() {
-	this.xPos = 0;
-	this.yPos = 0;
+	this.connected = new Map();
+}
+
+function PlayerState() {
+	this.xPos = 50;
+	this.yPos = 50;
 }
 
 server.listen(PORT, () => {
 	console.log(`Server running on port ${PORT}`);
 });
 
+var connectedPlayers = new Map(); 
+
 var gameState = new GameState();
 
 io.on("connection", (socket) => {
-		console.log("A player has connectted", socket.id);
+		console.log("A player has connected", socket.id);
+		if (!connectedPlayers.has(socket.id)) {
+			connectedPlayers.set(socket.id);
+			const newPlayer = new PlayerState();
+			gameState.connected.set(socket.id, newPlayer);	
+		}
 		socket.on("command", (...args) => {
 			if (args.includes("left")) {
-				gameState.xPos -= 1;
-			}
-			else if (args.includes("right")) {
-				gameState.xPos += 1;
+				gameState.connected.get(socket.id).xPos -= 1;
+			} else if (args.includes("right")) {
+				gameState.connected.get(socket.id).xPos += 1;
 			} else if (args.includes("up")) {
-				gameState.yPos += 1;
+				gameState.connected.get(socket.id).yPos += 1;
 			} else if (args.includes("down")) {
-				gameState.yPos -= 1;
+				gameState.connected.get(socket.id).yPos -= 1;
 			}
-			socket.emit("updateState", JSON.stringify(gameState));
+			io.sockets.emit("updateState", JSON.stringify(gameState));
 		});
 	});
 
