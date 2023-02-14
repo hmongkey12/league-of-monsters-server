@@ -24,12 +24,13 @@ server.listen(PORT, () => {
 	console.log(`Server running on port ${PORT}`);
 });
 
-var connectedPlayers = new Map(); 
+let connectedPlayers = new Map(); 
 
-var gameState = new GameState();
+let gameState = new GameState();
 
 io.on("connection", (socket) => {
 		console.log("A player has connected", socket.id);
+		let playerId = socket.id;
 		if (!connectedPlayers.has(socket.id)) {
 			connectedPlayers.set(socket.id);
 			const newPlayer = new PlayerState();
@@ -46,6 +47,11 @@ io.on("connection", (socket) => {
 				gameState.connected.get(socket.id).yPos -= 1;
 			}
 			io.sockets.emit("updateState", JSON.stringify(gameState));
+		});
+		socket.on("disconnect", (socket) => {
+			console.log("A player has disconnected", playerId);
+			gameState.connected.delete(playerId);
+			connectedPlayers.delete(playerId);
 		});
 	});
 
