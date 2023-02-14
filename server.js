@@ -28,6 +28,8 @@ let connectedPlayers = new Map();
 
 let gameState = new GameState();
 
+const movementSpeed = 5;
+
 io.on("connection", (socket) => {
 		console.log("A player has connected", socket.id);
 		let playerId = socket.id;
@@ -38,13 +40,13 @@ io.on("connection", (socket) => {
 		}
 		socket.on("command", (...args) => {
 			if (args.includes("left")) {
-				gameState.connected.get(socket.id).xPos -= 1;
+				gameState.connected.get(socket.id).xPos -= movementSpeed;
 			} else if (args.includes("right")) {
-				gameState.connected.get(socket.id).xPos += 1;
+				gameState.connected.get(socket.id).xPos += movementSpeed;
 			} else if (args.includes("up")) {
-				gameState.connected.get(socket.id).yPos += 1;
+				gameState.connected.get(socket.id).yPos += movementSpeed;
 			} else if (args.includes("down")) {
-				gameState.connected.get(socket.id).yPos -= 1;
+				gameState.connected.get(socket.id).yPos -= movementSpeed;
 			}
 			io.sockets.emit("updateState", JSON.stringify(gameState));
 		});
