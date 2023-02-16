@@ -18,6 +18,8 @@ function GameState() {
 function PlayerState() {
 	this.xPos = 50;
 	this.yPos = 50;
+	this.attacking = false;
+	this.moving = false;
 }
 
 server.listen(PORT, () => {
@@ -41,12 +43,16 @@ io.on("connection", (socket) => {
 		socket.on("command", (...args) => {
 			if (args.includes("left")) {
 				gameState.connected.get(socket.id).xPos -= movementSpeed;
+				gameState.connected.get(socket.id).moving = true;
 			} else if (args.includes("right")) {
 				gameState.connected.get(socket.id).xPos += movementSpeed;
+				gameState.connected.get(socket.id).moving = true;
 			} else if (args.includes("up")) {
 				gameState.connected.get(socket.id).yPos += movementSpeed;
+				gameState.connected.get(socket.id).moving = true;
 			} else if (args.includes("down")) {
 				gameState.connected.get(socket.id).yPos -= movementSpeed;
+				gameState.connected.get(socket.id).moving = true;
 			}
 			io.sockets.emit("updateState", JSON.stringify(gameState));
 		});
