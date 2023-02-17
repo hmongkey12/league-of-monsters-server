@@ -34,13 +34,14 @@ const movementSpeed = 5;
 
 io.on("connection", (socket) => {
 		console.log("A player has connected", socket.id);
-		console.log("This is the socket that gets sent when connected", socket);
 		let connectedPlayerId = socket.id;
 		if (!connectedPlayers.has(connectedPlayerId)) {
 			connectedPlayers.set(connectedPlayerId);
 			const newPlayer = new PlayerState();
 			gameState.connected.set(connectedPlayerId, newPlayer);
 		}
+		
+		io.sockets.emit("updateState", JSON.stringify(gameState));
 		socket.on("command", (...args) => {
 			if (args.includes("left")) {
 				gameState.connected.get(socket.id).xPos -= movementSpeed;
@@ -55,18 +56,18 @@ io.on("connection", (socket) => {
 				gameState.connected.get(socket.id).yPos -= movementSpeed;
 				gameState.connected.get(socket.id).moving = true;
 			}
-			// io.sockets.emit("updateState", JSON.stringify(gameState));
+			io.sockets.emit("updateState", JSON.stringify(gameState));
 		});
+
 		socket.on("getState", () => {
-			io.sockets.emit("updatedState", JSON.stringify(gameState));
-		})
-		socket.on("disconnect", (socket) => {
+			io.sockets.emit("updateState", JSON.stringify(gameState));
+		});
+		socket.on("disconnect", () => {
 			let disconnectedPlayerId = socket.id;
 			console.log("A player has disconnected", disconnectedPlayerId);
 			gameState.connected.delete(disconnectedPlayerId);
 			connectedPlayers.delete(disconnectedPlayerId);
-			io.sockets.emit("updatedState", JSON.stringify(gameState));
+			io.sockets.emit("updateState", JSON.stringify(gameState));
 		});
 	});
-
 
