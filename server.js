@@ -69,7 +69,6 @@ io.on("connection", (socket) => {
 				gameState.connected.get(socket.id).isMoving = true;
 				gameState.connected.get(socket.id).movingStart = Date.now();
 			} else if (args.includes("up") && !gameState.connected.get(socket.id).isAttacking && !gameState.connected.get(socket.id).isJumping){
-				// gameState.connected.get(socket.id).yPos += movementSpeed;
 				gameState.connected.get(socket.id).beforeJump = gameState.connected.get(socket.id).yPos;
 				gameState.connected.get(socket.id).isJumping = true;
 				gameState.connected.get(socket.id).jumpStart = Date.now();
