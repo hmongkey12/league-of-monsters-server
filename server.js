@@ -16,8 +16,8 @@ function GameState() {
 }
 
 function PlayerState() {
-	this.xPos = 320;
-	this.yPos = 240;
+	this.xPos = 0;
+	this.yPos = 0;
 	this.isAttacking = false;
 	this.isMoving = false;
 	this.attackStart = 0;
@@ -52,24 +52,23 @@ io.on("connection", (socket) => {
 		socket.on("command", (...args) => {
 			if (args.includes("left") && !gameState.connected.get(socket.id).isAttacking) {
 				gameState.connected.get(socket.id).facingDirection = "left";
-				if (gameState.connected.get(socket.id).xPos > 155) {
+				if (gameState.connected.get(socket.id).xPos > 0) {
 					gameState.connected.get(socket.id).xPos -= movementSpeed;
 				} else {
-					gameState.connected.get(socket.id).xPos = 155;
+					gameState.connected.get(socket.id).xPos = 0;
 				}
 				gameState.connected.get(socket.id).isMoving = true;
 				gameState.connected.get(socket.id).movingStart = Date.now();
 			} else if (args.includes("right") && !gameState.connected.get(socket.id).isAttacking) {
 				gameState.connected.get(socket.id).facingDirection = "right";
-				if (gameState.connected.get(socket.id).xPos < 3100) {
+				if (gameState.connected.get(socket.id).xPos < 3600) {
 					gameState.connected.get(socket.id).xPos += movementSpeed;
 				} else {
-					gameState.connected.get(socket.id).xPos = 3100;
+					gameState.connected.get(socket.id).xPos = 3600;
 				}
 				gameState.connected.get(socket.id).isMoving = true;
 				gameState.connected.get(socket.id).movingStart = Date.now();
 			} else if (args.includes("up") && !gameState.connected.get(socket.id).isAttacking && !gameState.connected.get(socket.id).isJumping){
-				// gameState.connected.get(socket.id).yPos += movementSpeed;
 				gameState.connected.get(socket.id).beforeJump = gameState.connected.get(socket.id).yPos;
 				gameState.connected.get(socket.id).isJumping = true;
 				gameState.connected.get(socket.id).jumpStart = Date.now();
