@@ -15,7 +15,13 @@ function GameState() {
 	this.connected = new Map();
 }
 
+function extractAbilities(abilities) {
+	console.log(abilities)
+	return [];
+}
+
 function PlayerState() {
+	this.heroName = "pumpkin_head"
 	this.xPos = 0;
 	this.yPos = 0;
 	this.isAttacking = false;
@@ -29,6 +35,7 @@ function PlayerState() {
 	this.movingEnd = 0;
 	this.facingDirection = "none";
 	this.beforeJump = this.yPos;
+	this.abilities = [];
 }
 
 server.listen(PORT, () => {
@@ -38,6 +45,8 @@ server.listen(PORT, () => {
 let connectedPlayers = new Map(); 
 
 let gameState = new GameState();
+
+let newGameState = new Map();
 
 const movementSpeed = 5;
 
@@ -49,6 +58,25 @@ io.on("connection", (socket) => {
 			const newPlayer = new PlayerState();
 			gameState.connected.set(connectedPlayerId, newPlayer);
 		}
+
+		socket.on("createPlayer", (...args) => {
+			// TODO
+			let jsonArgs = JSON.parse(args);
+			if (!newGameState.has(socket.id)) {
+				const newPlayer = new PlayerState();
+				newPlayer.xPos = jsonArgs["xPos"];
+				newPlayer.yPos = jsonArgs["yPos"];
+				newPlayer.heroName = jsonArgs["heroName"];
+				newPlayer.abilities = jsonArgs["abilities"];
+				newGameState.set(socket.id, newPlayer);
+				// console.log(newGameState)
+				// console.log(newPlayer.abilities[0])
+			}
+			// io.sockets.emit("newState", JSON.stringify(newGameState));
+		})
+
+
+
 		socket.on("command", (...args) => {
 			if (args.includes("left") && !gameState.connected.get(socket.id).isAttacking) {
 				gameState.connected.get(socket.id).facingDirection = "left";
