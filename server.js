@@ -9,6 +9,10 @@ const {handleInput} = require("./utilities")
 const app = express();
 const PORT = 3000 || process.env.PORT;
 const server = http.createServer(app);
+const JUMP_CONSTANT = 10;
+const MAX_JUMP_HEIGHT = 100;
+const GROUND_Y_POSITION = 0;
+const JUMPS_PER_SECOND = 2;
 
 app.use(express.static("public"));
 
@@ -68,15 +72,34 @@ io.on("connection", (socket) => {
 					gameState.connected.get(socket.id).movingStart = 0;
 					gameState.connected.get(socket.id).movingEnd = 0;
 				}
-				if (gameState.connected.get(socket.id).isJumping && elapsedJumpingTime >= .5) {
-					gameState.connected.get(socket.id).isJumping = false;
-					gameState.connected.get(socket.id).jumpStart = 0;
-					gameState.connected.get(socket.id).jumpEnd = 0;
-				} else if (gameState.connected.get(socket.id).isJumping) {
-					gameState.connected.get(socket.id).yPos += 5;
-				} else if (gameState.connected.get(socket.id).beforeJump <  gameState.connected.get(socket.id).yPos) {
-					gameState.connected.get(socket.id).yPos -= 5;
+
+				if (elapsedJumpingTime >= JUMPS_PER_SECOND) {
+					if (gameState.connected.get(socket.id).isJumping) {
+						if (gameState.connected.get(socket.id).yPos < MAX_JUMP_HEIGHT) {
+							gameState.connected.get(socket.id).yPos += JUMP_CONSTANT;
+						} else {
+							gameState.connected.get(socket.id).isJumping = false;
+							gameState.connected.get(socket.id).isFalling = true;
+						}
+					} else if (gameState.connected.get(socket.id).isFalling) {
+						if (gameState.connected.get(socket.id).yPos > GROUND_Y_POSITION) {
+							gameState.connected.get(socket.id).yPos -= JUMP_CONSTANT;
+						} else {
+							gameState.connected.get(socket.id).yPos = GROUND_Y_POSITION;
+							gameState.connected.get(socket.id).isFalling = false;
+						}
+					}
 				}
+
+				// if (gameState.connected.get(socket.id).isJumping && elapsedJumpingTime >= .5) {
+				// 	gameState.connected.get(socket.id).isJumping = false;
+				// 	gameState.connected.get(socket.id).jumpStart = 0;
+				// 	gameState.connected.get(socket.id).jumpEnd = 0;
+				// } else if (gameState.connected.get(socket.id).isJumping) {
+				// 	gameState.connected.get(socket.id).yPos += 5;
+				// } else if (gameState.connected.get(socket.id).beforeJump <  gameState.connected.get(socket.id).yPos) {
+				// 	gameState.connected.get(socket.id).yPos -= 5;
+				// }
 				io.sockets.emit("updateState", JSON.stringify(gameState));
 			}
 		});
