@@ -3,7 +3,7 @@ const socket = require("socket.io");
 const http = require("http");
 const List = require("collections/list");
 const {abilityEntity, heroEntity } = require("./entities")
-const {loadPumpkinAbilities}  = require("./abilityConfig")
+const {loadPumpkinAbilities, loadReaperAbilities }  = require("./abilityConfig")
 const {handleInput} = require("./utilities")
 
 const app = express();
@@ -37,14 +37,19 @@ let gameState = new GameState();
 
 io.on("connection", (socket) => {
 		console.log("A player has connected", socket.id);
-		if (!gameState.connected.has(socket.id)) {
-			const newHero = new heroEntity("pumpkin");
-			newHero.abilities = loadPumpkinAbilities();
-			gameState.connected.set(socket.id, newHero);
-		}
 
-		socket.on("createPlayer", (...args) => {
-			// TODO: create the hero based on the selection
+		socket.on("createHero", (...args) => {
+			if (!gameState.connected.has(socket.id)) {
+				const newHero = new heroEntity(args[0]);
+				newHero.abilities = loadPumpkinAbilities();
+				if (args.has("pumpkin")) {
+					newHero.abilities = loadPumpkinAbilities();
+				} else if (args.has("reaper")) {
+					newHero.abilities = loadReaperAbilities();
+				}
+				gameState.connected.set(socket.id, newHero);
+			}
+			io.sockets.emit("heroCreated", socket.id);
 		})
 
 		socket.on("command", (...args) => {
@@ -90,16 +95,6 @@ io.on("connection", (socket) => {
 						}
 					}
 				}
-
-				// if (gameState.connected.get(socket.id).isJumping && elapsedJumpingTime >= .5) {
-				// 	gameState.connected.get(socket.id).isJumping = false;
-				// 	gameState.connected.get(socket.id).jumpStart = 0;
-				// 	gameState.connected.get(socket.id).jumpEnd = 0;
-				// } else if (gameState.connected.get(socket.id).isJumping) {
-				// 	gameState.connected.get(socket.id).yPos += 5;
-				// } else if (gameState.connected.get(socket.id).beforeJump <  gameState.connected.get(socket.id).yPos) {
-				// 	gameState.connected.get(socket.id).yPos -= 5;
-				// }
 				io.sockets.emit("updateState", JSON.stringify(gameState));
 			}
 		});
